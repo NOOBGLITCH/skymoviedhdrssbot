@@ -1,0 +1,9 @@
+TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+TELEGRAM_CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID' 
+
+WEBSITE_URL = 'https://skymovieshd.land/'
+SKYBAP_URL = 'https://www.skybap.com/'
+
+CSS_POST_SELECTOR = 'div.Fmvideo b a'
+
+LAST_SEEN_FILE = 'last_seen_movies.json'
