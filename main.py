@@ -1,6 +1,7 @@
 # main.py
 import time
-import schedule 
+import asyncio # New import
+from apscheduler.schedulers.asyncio import AsyncIOScheduler # New import
 from config import WEBSITE_URL, LAST_SEEN_FILE, CHECK_INTERVAL_MINUTES, LAST_KNOWN_URL_FILE
 from scraper import get_current_website_data
 from storage import load_last_seen_data, save_last_seen_data
@@ -10,10 +11,10 @@ from url_resolver import resolve_movie_website_url
 
 last_notification_timestamp = 0
 
-def monitor_website_changes():
+async def monitor_website_changes(): # Made async
     global last_notification_timestamp
 
-    current_monitoring_url = resolve_movie_website_url()
+    current_monitoring_url = await resolve_movie_website_url() # Added 'await' here
 
     if not current_monitoring_url:
         print(f"[{get_current_ist_timestamp()}] No active website URL found. Skipping movie check.")
@@ -33,10 +34,9 @@ def monitor_website_changes():
     if new_movie_fingerprints:
         current_time = time.time()
         
-        # Check if cooldown is active
         if (current_time - last_notification_timestamp) < (CHECK_INTERVAL_MINUTES * 60):
             print(f"[{get_current_ist_timestamp()}] New movies found, but notification cooldown is active. Skipping notification.")
-            save_last_seen_data(current_fingerprints, LAST_SEEN_FILE) # Update to avoid re-notifying later
+            save_last_seen_data(current_fingerprints, LAST_SEEN_FILE)
             return
 
         notification_message = "📢 **Website Update Detected!** 📢\n\n"
@@ -55,9 +55,9 @@ def monitor_website_changes():
 
         if new_posts_count > 0:
             notification_message += f"\nCheck out all the latest updates here: {current_monitoring_url}"
-            send_telegram_message(notification_message)
+            await send_telegram_message(notification_message) # Added 'await' here
             
-            last_notification_timestamp = current_time # Update cooldown timestamp
+            last_notification_timestamp = current_time
             save_last_seen_data(current_fingerprints, LAST_SEEN_FILE)
             print(f"Detected and notified about {new_posts_count} new movie(s).")
         else:
@@ -67,15 +67,22 @@ def monitor_website_changes():
     else:
         print("No new movies detected.")
 
-def start_monitoring_bot():
-    print(f"Bot starting. Monitoring every {CHECK_INTERVAL_MINUTES} minutes.")
-    schedule.every(CHECK_INTERVAL_MINUTES).minutes.do(monitor_website_changes)
+async def start_monitoring_bot(): # Made async
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(monitor_website_changes, 'interval', minutes=CHECK_INTERVAL_MINUTES)
+    
+    scheduler.start()
+    
+    # Run the first check immediately
+    await monitor_website_changes() # Added 'await' here
 
-    monitor_website_changes() 
-
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    # Keep the asyncio event loop running indefinitely
+    try:
+        while True:
+            await asyncio.sleep(1) # Sleep to allow other tasks to run
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
 
 if __name__ == "__main__":
-    start_monitoring_bot()
+    # This is how you run an async main function
+    asyncio.run(start_monitoring_bot())
