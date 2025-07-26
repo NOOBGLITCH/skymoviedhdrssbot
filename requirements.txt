@@ -1,1 +1,7 @@
+requests
+beautifulsoup4
+python-telegram-bot
+schedule
+pytz
 APScheduler
+aiohttp

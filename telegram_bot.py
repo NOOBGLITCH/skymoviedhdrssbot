@@ -1,4 +1,3 @@
-# telegram_bot.py
 import telegram
 from telegram.constants import ParseMode
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
@@ -10,11 +9,11 @@ async def send_telegram_message(message):
 
     for chat_id in chat_ids:
         try:
-            await bot.send_message( # Added 'await' here
+            await bot.send_message(
                 chat_id=chat_id,
                 text=message,
                 parse_mode=ParseMode.MARKDOWN,
-                disable_web_page_preview=False
+                disable_web_page_preview=True
             )
             print(f"Telegram message sent successfully to chat ID: {chat_id}.")
         except telegram.error.TelegramError as e:
