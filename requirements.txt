@@ -6,3 +6,5 @@ pytz
 APScheduler
 aiohttp
 md2tgmd
+fastapi
+flask
